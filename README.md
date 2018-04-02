@@ -2,7 +2,7 @@
 Learning about and creating an OS.
 
 ## Building
-`nasm -f bin boot_sec.asm -o boot_sec.bin`
+`nasm -f bin boot_sec.asm -o out/boot_sec.bin`
 
 ## Running
-`qemu-system-i386 boot_sec.bin`
+`qemu-system-i386 out/boot_sec.bin`
