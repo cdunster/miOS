@@ -1,4 +1,4 @@
-[org 0x7C00]
+[org 0x7C00] ; Set origin address to the expected bootloader address.
 
 mov ah, 0x0E ; TTY mode
 
