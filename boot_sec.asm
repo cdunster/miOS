@@ -1,32 +1,42 @@
-mov ah, 0x0e ; tty mode
-mov al, 'H'
-int 0x10
-mov al, 'e'
-int 0x10
-mov al, 'l'
-int 0x10
-int 0x10 ; Write 'l' again
-mov al, 'o'
-int 0x10
-mov al, ' '
-int 0x10
-mov al, 'W'
-int 0x10
-mov al, 'o'
-int 0x10
-mov al, 'r'
-int 0x10
-mov al, 'l'
-int 0x10
-mov al, 'd'
-int 0x10
-mov al, '!'
+[org 0x7C00]
+
+mov ah, 0x0E ; TTY mode
+
+mov bp, 0x8000 ; An address for the stack far away from the bootloader start address (0x7C00) so we don't get overwritten.
+mov sp, bp ; Empty stack; sp points to bp.
+
+push 'A'
+push 'B'
+push 'C'
+
+; Show how the stack grows downwards.
+; Can only push words so each character is offset by one word.
+mov al, [0x7FFE] ; 'A'
+int 0x10 ; Screen interrupt. (Print to screen).
+
+mov al, [0x7FFC] ; 'B'
 int 0x10
 
-jmp $
+mov al, [0x7FFA] ; 'C'
+int 0x10
 
-; Fill rest with zeros
+; Can only pop words so use an auxiliary register so ah (TTY mode) isn't overwritten.
+pop bx
+mov al, bl ; Get lower byte from the pop. 'C'
+int 0x10
+
+pop bx
+mov al, bl ; 'B'
+int 0x10
+
+pop bx
+mov al, bl ; 'A'
+int 0x10
+
+jmp $ ; Jump here. (Infinite loop).
+
+; Fill the rest of he bootloader area with zeros.
 times 510-($-$$) db 0
 
-; BIOS check number
+; BIOS check number.
 dw 0xAA55
