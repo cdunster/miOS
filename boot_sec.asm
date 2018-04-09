@@ -1,42 +1,31 @@
 [org 0x7C00] ; Set origin address to the expected bootloader address.
 
-mov ah, 0x0E ; TTY mode
+mov bp, 0x8000
+mov sp, bp
 
-mov bp, 0x8000 ; An address for the stack far away from the bootloader start address (0x7C00) so we don't get overwritten.
-mov sp, bp ; Empty stack; sp points to bp.
+mov bx, 0x9000
+mov dh, 2
+; BIOS sets dl to boot disk number.
+call disk_load
 
-push 'A'
-push 'B'
-push 'C'
+mov dx, [0x9000] ; Retrieve first loaded word (0xDADA).
+call print_hex
 
-; Show how the stack grows downwards.
-; Can only push words so each character is offset by one word.
-mov al, [0x7FFE] ; 'A'
-int 0x10 ; Screen interrupt. (Print to screen).
+call print_newline
 
-mov al, [0x7FFC] ; 'B'
-int 0x10
+mov dx, [0x9000 + 512] ; First word from second sector read (0xFACE).
+call print_hex
 
-mov al, [0x7FFA] ; 'C'
-int 0x10
+jmp $
 
-; Can only pop words so use an auxiliary register so ah (TTY mode) isn't overwritten.
-pop bx
-mov al, bl ; Get lower byte from the pop. 'C'
-int 0x10
+%include "print.asm"
+%include "disk.asm"
 
-pop bx
-mov al, bl ; 'B'
-int 0x10
-
-pop bx
-mov al, bl ; 'A'
-int 0x10
-
-jmp $ ; Jump here. (Infinite loop).
-
-; Fill the rest of he bootloader area with zeros.
+; Fill the rest of the bootloader area with zeros.
 times 510-($-$$) db 0
 
 ; BIOS check number.
 dw 0xAA55
+
+times 256 dw 0xDADA ; Fill sector two.
+times 256 dw 0xFACE ; Fill sector three.
