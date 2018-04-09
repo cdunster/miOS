@@ -1,31 +1,28 @@
 [org 0x7C00] ; Set origin address to the expected bootloader address.
 
-mov bp, 0x8000
+mov bp, 0x9000
 mov sp, bp
 
-mov bx, 0x9000
-mov dh, 2
-; BIOS sets dl to boot disk number.
-call disk_load
+mov bx, MSG_REAL_MODE
+call print_string_rm
 
-mov dx, [0x9000] ; Retrieve first loaded word (0xDADA).
-call print_hex
+call switch_to_32
+jmp $       ; Should never get here.
 
-call print_newline
+%include "realmode_print.asm"
+%include "32bit_gdt.asm"
+%include "32bit_print.asm"
+%include "32bit_switch.asm"
 
-mov dx, [0x9000 + 512] ; First word from second sector read (0xFACE).
-call print_hex
+[bits 32]
+begin_32:
+    mov ebx, MSG_32BIT_MODE
+    call print_string_32
+    jmp $
 
-jmp $
+MSG_REAL_MODE: db "Started in 16-bit real mode", 0
+MSG_32BIT_MODE: db "Loaded 32-bit protected mode", 0
 
-%include "print.asm"
-%include "disk.asm"
-
-; Fill the rest of the bootloader area with zeros.
+; Bootsector.
 times 510-($-$$) db 0
-
-; BIOS check number.
 dw 0xAA55
-
-times 256 dw 0xDADA ; Fill sector two.
-times 256 dw 0xFACE ; Fill sector three.
