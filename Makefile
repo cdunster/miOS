@@ -4,3 +4,6 @@ all:
 
 clean:
 	rm out/boot_sec.bin
+
+run: all
+	qemu-system-i386 out/boot_sec.bin
